@@ -44,6 +44,10 @@ module.exports = {
       TRACE_TURBOLINKS: devBuild,
     }),
 
+    new webpack.ProvidePlugin({
+      'window.Tether': 'tether'
+    }),
+
     // https://webpack.github.io/docs/list-of-plugins.html#2-explicit-vendor-chunk
     new webpack.optimize.CommonsChunkPlugin({
 
@@ -71,7 +75,7 @@ module.exports = {
       // Use one of these to serve jQuery for Bootstrap scripts:
 
       // Bootstrap 3
-      { test: /bootstrap-sass\/assets\/javascripts\//, loader: 'imports?jQuery=jquery' },
+      // { test: /bootstrap-sass\/assets\/javascripts\//, loader: 'imports?jQuery=jquery' },
 
       // Bootstrap 4
       { test: /bootstrap\/dist\/js\/umd\//, loader: 'imports?jQuery=jquery' },
