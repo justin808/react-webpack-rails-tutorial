@@ -49,8 +49,26 @@ export default class CommentScreen extends BaseComponent {
               Rails On Maui on Twitter
             </a>
           </div>
+          <div className="container">
+            <h2>Example of Font Awesome using the font-awesome-loader</h2>
+            <div className="row col-items">
+              <div className="col-md-4 col-item">
+                <span className="fa fa-headphones"></span>
+                <span className="text">It.</span>
+              </div>
+              <div className="col-md-4 col-item">
+                <span className="fa fa-glass"></span>
+                <span className="text">Just.</span>
+              </div>
+              <div className="col-md-4 col-item">
+                <span className="fa fa-thumbs-up"></span>
+                <span className="text">Works.</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
     );
   }
 }

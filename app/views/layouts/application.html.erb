@@ -20,30 +20,27 @@
   <%= csrf_meta_tags %>
 </head>
 <body>
-<nav class="navbar navbar-default" role="navigation">
+<nav class="navbar navbar-light" style="background-color: #FFFFE0; border-color: #ffffbf" role="navigation">
   <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a class="navbar-brand" href="http://www.shakacode.com">ShakaCode</a>
-    </div>
+
+    <a class="navbar-brand" href="http://www.shakacode.com">ShakaCode</a>
+    <button class="navbar-toggler hidden-sm-up" type="button" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+      &#9776;
+    </button>
 
     <!-- Collect the nav links, forms, and other content for toggling -->
-    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+    <div class="collapse navbar-toggleable-xs" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
-        <li class="active"><%= link_to "React Router Demo", root_path %></li>
-        <li><%= link_to "React Demo", no_router_path %></li>
-        <li><%= link_to "Simple React", simple_path %></li>
-        <li><%= link_to "Classic Rails", comments_path %></li>
-        <li><%= link_to "Source on Github", "https://github.com/shakacode/react-webpack-rails-tutorial" %></li>
-        <li><%= link_to "Tutorial Article", "http://www.railsonmaui.com/blog/2014/10/03/integrating-webpack-and-the-es6-transpiler-into-an-existing-rails-project/" %></li>
-        <li><%= link_to "Forum Discussion", "http://forum.shakacode.com/t/fast-rich-client-rails-development-with-webpack-and-the-es6-transpiler/82/22" %></li>
+        <li class="nav-item active"><%= link_to "React Router Demo", root_path, class: "nav-link" %></li>
+        <li class="nav-item"><%= link_to "React Demo", no_router_path, class: "nav-link" %></li>
+        <li class="nav-item"><%= link_to "Simple React", simple_path, class: "nav-link" %></li>
+        <li class="nav-item"><%= link_to "Classic Rails", comments_path, class: "nav-link" %></li>
+        <li class="nav-item"><%= link_to "Source on Github", "https://github.com/shakacode/react-webpack-rails-tutorial", class: "nav-link" %></li>
+        <li class="nav-item"><%= link_to "Tutorial Article", "http://www.railsonmaui.com/blog/2014/10/03/integrating-webpack-and-the-es6-transpiler-into-an-existing-rails-project/", class: "nav-link" %></li>
+        <li class="nav-item"><%= link_to "Forum Discussion", "http://forum.shakacode.com/t/fast-rich-client-rails-development-with-webpack-and-the-es6-transpiler/82/22", class: "nav-link" %></li>
       </ul>
     </div><!-- /.navbar-collapse -->
+
   </div><!-- /.container-fluid -->
 </nav>
 

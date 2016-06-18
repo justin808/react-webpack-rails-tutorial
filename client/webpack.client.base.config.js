@@ -20,6 +20,7 @@ module.exports = {
       'es5-shim/es5-sham',
       'jquery',
       'turbolinks',
+      'font-awesome-loader'
     ],
 
     // This will contain the app entry points defined by webpack.hot.config and webpack.rails.config
@@ -64,9 +65,18 @@ module.exports = {
   ],
   module: {
     loaders: [
-      { test: /\.(woff2?|svg)$/, loader: 'url?limit=10000' },
-      { test: /\.(ttf|eot)$/, loader: 'file' },
       { test: /\.(jpe?g|png|gif|svg|ico)$/, loader: 'url?limit=10000' },
+
+      {
+       test: /\.woff2?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+       // Limiting the size of the woff fonts breaks font-awesome ONLY for the extract text plugin
+       // loader: "url?limit=10000"
+       loader: "url"
+      },
+      {
+       test: /\.(ttf|eot|svg)(\?[\s\S]+)?$/,
+       loader: 'file'
+      },
 
       { test: require.resolve('jquery'), loader: 'expose?jQuery' },
       { test: require.resolve('jquery'), loader: 'expose?$' },
