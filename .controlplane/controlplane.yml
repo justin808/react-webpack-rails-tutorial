@@ -1,11 +1,18 @@
 # Configuration for "Heroku to CPLN playbook" custom scripts
 aliases:
   common: &common
-    # Change this to your org name for staging. Production apps will use a different org
-    # for security.
+    # Org name for staging. (customize to your needs)
+    # Production apps will use a different Control Plane org, specified below, for security.
+    # keys beginning with CPLN correspond to your settings in Control Plane
+    cpln_org: shakacode-staging
     org: shakacode-staging
+
     # Change `shakacode-staging` to your-org-name-for-staging
     # Example apps use only location. CPLN offers the ability to use multiple locations.
+    # TODO -- allow specfication of multiple locations
+    default_location: aws-us-east-2
+
+    # TODO -- remove
     location: aws-us-east-2
     # Configure the workload name used as a template for one-off scripts, like a Heroku one-off dyno.
     one_off_workload: rails
@@ -20,9 +27,38 @@ aliases:
 
 apps:
   ror-tutorial:
+    # Use the values from the common section above
     <<: *common
   react-webpack-rails-tutorial:
     <<: *common
   ror-tutorial-review:
     <<: *common
+    # if app_name_glob == true, then use this config for app names beginning, like ror-tutorial-review-pr123
+    # In this case, there is no customization beyond the common
+    # New:
+    match_if_app_name_starts_with: true
+
+    # Old
     prefix: true
+  ror-tutorial-qa:
+    <<: *common
+    # Use a different org for production
+    org: shakacode-staging
+  ror-tutorial-staging:
+    <<: *common
+    # Use a different org for production
+    org: shakacode-production
+
+  ror-tutorial-production:
+    <<: *common
+    # Allows running command 'cpl pipeline-promote ror-tutorial-staging' to promote the staging app to production
+    # https://devcenter.heroku.com/articles/pipelines#promoting-from-the-heroku-cli
+    upstream: ror-tutorial-staging
+    release_script: ./production-release-script
+    # Use a different org for production
+    org: shakacode-production
+
+  # App that leverages permissions on the org to control running of code that promotes staging to production
+  ror-tutorial-production-deployment-manager:
+    <<: *common
+    org: shakacode-production
