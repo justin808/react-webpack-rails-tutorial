@@ -14,7 +14,7 @@ permissions:
 
 env:
   CPLN_ORG: ${{ secrets.CPLN_ORG }}
-  CPLN_TOKEN: ${{ secrets.CPLN_TOKEN }}
+  CPLN_TOKEN: ${{ secrets.CPLN_TOKEN_STAGING }}
   APP_NAME: qa-react-webpack-rails-tutorial-pr-${{ github.event.pull_request.number || github.event.issue.number }}
   PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
 
@@ -34,7 +34,7 @@ jobs:
       - name: Validate Required Secrets
         run: |
           missing_secrets=()
-          for secret in "CPLN_TOKEN" "CPLN_ORG"; do
+          for secret in "CPLN_TOKEN_STAGING" "CPLN_ORG_STAGING"; do
             if [ -z "${!secret}" ]; then
               missing_secrets+=("$secret")
             fi
@@ -122,7 +122,7 @@ jobs:
           org: ${{ env.CPLN_ORG }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
         env:
-          CPLN_TOKEN: ${{ secrets.CPLN_TOKEN }}
+          CPLN_TOKEN: ${{ secrets.CPLN_TOKEN_STAGING }}
 
       - name: Update Delete Status
         if: always()

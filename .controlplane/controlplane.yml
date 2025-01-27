@@ -38,7 +38,7 @@ aliases:
     release_script: release_script.sh
 
 apps:
-  react-webpack-rails-tutorial:
+  react-webpack-rails-tutorial-production:
     # Simulate Production Version
     <<: *common
     # Don't allow overriding the org and app by ENV vars b/c production is sensitive!

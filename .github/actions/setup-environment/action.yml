@@ -21,6 +21,9 @@ runs:
 
     - name: Setup Control Plane Profile
       shell: bash
+      env:
+        CPLN_TOKEN: ${{ env.CPLN_TOKEN }}
+        CPLN_ORG: ${{ env.CPLN_ORG }}
       run: |
         if [ -z "$CPLN_TOKEN" ]; then
           echo " Error: CPLN_TOKEN environment variable is not set"
