@@ -32,80 +32,16 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Validate Required Secrets
-      shell: bash
-      run: |
-        missing_secrets=()
-        for secret in "CPLN_TOKEN" "CPLN_ORG"; do
-          if [ -z "${!secret}" ]; then
-            missing_secrets+=("$secret")
-          fi
-        done
-        
-        if [ ${#missing_secrets[@]} -ne 0 ]; then
-          echo "Required secrets are not set: ${missing_secrets[*]}"
-          exit 1
-        fi
-
-    - name: Setup Environment
-      uses: ./.github/actions/setup-environment
-
-    - name: Get Commit SHA
-      id: get_sha
-      shell: bash
-      run: ${{ github.action_path }}/scripts/get-commit-sha.sh
-      env:
-        GITHUB_TOKEN: ${{ inputs.github_token }}
-        PR_NUMBER: ${{ inputs.pr_number }}
-
     - name: Deploy to Control Plane
       id: deploy
       shell: bash
       env:
+        APP_NAME: ${{ inputs.app_name }}
+        CPLN_ORG: ${{ inputs.org }}
         CPLN_TOKEN: ${{ inputs.cpln_token }}
-        PR_NUMBER: ${{ inputs.pr_number }}
+        WAIT_TIMEOUT: ${{ inputs.wait_timeout }}
       run: |
-        echo "🚀 Deploying app for PR #${PR_NUMBER}..."
-        
-        # Create temp file for output
-        TEMP_OUTPUT=$(mktemp)
-        trap 'rm -f "${TEMP_OUTPUT}"' EXIT
-        
-        # Deploy the application and show output in real-time while capturing it
-        if ! cpflow deploy-image -a "${{ inputs.app_name }}" --run-release-phase --org "${{ inputs.org }}" 2>&1 | tee "${TEMP_OUTPUT}"; then
-          echo "❌ Deployment failed for PR #${PR_NUMBER}"
-          echo "Error output:"
-          cat "${TEMP_OUTPUT}"
+        # Run the deployment script
+        if ! ${{ github.action_path }}/scripts/deploy.sh; then
           exit 1
         fi
-        
-        # Extract app URL from captured output
-        REVIEW_APP_URL=$(grep -oP 'https://rails-[^[:space:]]*\.cpln\.app(?=\s|$)' "${TEMP_OUTPUT}" | head -n1)
-        if [ -z "${REVIEW_APP_URL}" ]; then
-          echo "❌ Failed to get app URL from deployment output"
-          echo "Deployment output:"
-          cat "${TEMP_OUTPUT}"
-          exit 1
-        fi
-        
-        # Wait for all workloads to be ready
-        WAIT_TIMEOUT=${WAIT_TIMEOUT:-${{ inputs.wait_timeout }}}
-        echo "⏳ Waiting for all workloads to be ready (timeout: ${WAIT_TIMEOUT}s)..."
-        
-        # Use timeout command with ps:wait and show output in real-time
-        if ! timeout "${WAIT_TIMEOUT}" bash -c "cpflow ps:wait -a \"${{ inputs.app_name }}\"" 2>&1 | tee -a "${TEMP_OUTPUT}"; then
-          TIMEOUT_EXIT=$?
-          if [ ${TIMEOUT_EXIT} -eq 124 ]; then
-            echo "❌ Timed out waiting for workloads after ${WAIT_TIMEOUT} seconds"
-          else
-            echo "❌ Workloads did not become ready for PR #${PR_NUMBER} (exit code: ${TIMEOUT_EXIT})"
-          fi
-          echo "Full output:"
-          cat "${TEMP_OUTPUT}"
-          exit 1
-        fi
-        
-        echo "✅ Deployment successful for PR #${PR_NUMBER}"
-        echo "🌐 App URL: ${REVIEW_APP_URL}"
-        echo "review_app_url=${REVIEW_APP_URL}" >> $GITHUB_OUTPUT
-        echo "REVIEW_APP_URL=${REVIEW_APP_URL}" >> $GITHUB_ENV

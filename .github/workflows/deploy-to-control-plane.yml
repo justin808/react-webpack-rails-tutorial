@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  APP_NAME: qa-react-webpack-rails-tutorial-pr-${{ github.event.pull_request.number || github.event.issue.number || github.event.inputs.pr_number }}
+  APP_NAME: ${{ vars.REVIEW_APP_PREFIX }}-${{ github.event.pull_request.number || github.event.issue.number || github.event.inputs.pr_number }}
   CPLN_TOKEN: ${{ secrets.CPLN_TOKEN_STAGING }}
   CPLN_ORG: ${{ vars.CPLN_ORG_STAGING }}
   PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number || github.event.inputs.pr_number }}
@@ -62,27 +62,61 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Validate Required Secrets and Variables
+        shell: bash
+        run: |
+          missing=()
+          
+          # Check secrets
+          if [ -z "${{ secrets.CPLN_TOKEN_STAGING }}" ]; then
+            missing+=("Secret: CPLN_TOKEN_STAGING")
+          fi
+          
+          # Check variables
+          if [ -z "${{ vars.CPLN_ORG_STAGING }}" ]; then
+            missing+=("Variable: CPLN_ORG_STAGING")
+          fi
+          
+          if [ -z "${{ vars.REVIEW_APP_PREFIX }}" ]; then
+            missing+=("Variable: REVIEW_APP_PREFIX")
+          fi
+          
+          if [ ${#missing[@]} -ne 0 ]; then
+            echo "Required secrets/variables are not set: ${missing[*]}"
+            exit 1
+          fi
+
       - name: Get PR HEAD Ref
         id: getRef
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            PR_NUMBER="${{ github.event.inputs.pr }}"
-          elif [[ "${{ github.event_name }}" == "issue_comment" ]]; then
-            PR_NUMBER="${{ github.event.issue.number }}"
-          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            PR_NUMBER="${{ github.event.pull_request.number }}"
-          elif [[ "${{ github.event_name }}" == "push" ]]; then
-            # For push events, find associated PR
-            PR_DATA=$(gh pr list --head "${{ github.ref_name }}" --json number --jq '.[0].number')
-            if [[ -n "$PR_DATA" ]]; then
-              PR_NUMBER="$PR_DATA"
-            else
-              echo "Error: No PR found for branch ${{ github.ref_name }}"
+          # Get PR number based on event type
+          case "${{ github.event_name }}" in
+            "workflow_dispatch")
+              PR_NUMBER="${{ github.event.inputs.pr_number }}"
+              ;;
+            "issue_comment")
+              PR_NUMBER="${{ github.event.issue.number }}"
+              ;;
+            "pull_request")
+              PR_NUMBER="${{ github.event.pull_request.number }}"
+              ;;
+            "push")
+              # For push events, find associated PR
+              PR_DATA=$(gh pr list --head "${{ github.ref_name }}" --json number --jq '.[0].number')
+              if [[ -n "$PR_DATA" ]]; then
+                PR_NUMBER="$PR_DATA"
+              else
+                echo "Error: No PR found for branch ${{ github.ref_name }}"
+                exit 1
+              fi
+              ;;
+            *)
+              echo "Error: Unsupported event type ${{ github.event_name }}"
               exit 1
-            fi
-          fi
+              ;;
+          esac
           
           if [[ -z "$PR_NUMBER" ]]; then
             echo "Error: Could not determine PR number"
@@ -91,7 +125,7 @@ jobs:
           
           # Set environment variables
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
-          echo "APP_NAME=qa-react-webpack-rails-tutorial-pr-$PR_NUMBER" >> $GITHUB_ENV
+          echo "APP_NAME=${{ vars.REVIEW_APP_PREFIX }}-$PR_NUMBER" >> $GITHUB_ENV
           
           # Get PR data using GitHub CLI
           PR_DATA=$(gh pr view $PR_NUMBER --repo shakacode/react-webpack-rails-tutorial --json headRefName,headRefOid)
@@ -150,6 +184,7 @@ jobs:
       - name: Create Initial Comment
         if: env.DO_DEPLOY != 'false'
         uses: actions/github-script@v7
+        id: create-comment
         with:
           script: |
             const result = await github.rest.issues.createComment({
@@ -159,6 +194,26 @@ jobs:
               body: '🚀 Starting deployment process...\n\n' + process.env.CONSOLE_LINK
             });
             core.setOutput('comment-id', result.data.id);
+
+      - name: Update Comment - Building
+        if: env.DO_DEPLOY != 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const buildingMessage = [
+              `🏗️ Building Docker image for PR #${process.env.PR_NUMBER}, commit ${process.env.PR_SHA}`,
+              '',
+              `📝 [View Build Logs](${process.env.WORKFLOW_URL})`,
+              '',
+              process.env.CONSOLE_LINK
+            ].join('\n');
+            
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: ${{ steps.create-comment.outputs.comment-id }},
+              body: buildingMessage
+            });
 
       - name: Set Deployment URLs
         id: set-urls
@@ -180,7 +235,7 @@ jobs:
             core.exportVariable('WORKFLOW_URL', workflowUrl);
             core.exportVariable('CONSOLE_LINK', 
               '🎮 [Control Plane Console](' + 
-              'https://console.cpln.io/console/org/' + process.env.CPLN_ORG_STAGING + '/gvc/' + process.env.APP_NAME + '/-info)'
+              'https://console.cpln.io/console/org/' + process.env.CPLN_ORG + '/gvc/' + process.env.APP_NAME + '/-info)'
             );
 
       - name: Update Status - Building
@@ -189,7 +244,7 @@ jobs:
         with:
           script: |
             const buildingMessage = [
-              '🏗️ Building Docker image for PR #' + process.env.PR_NUMBER + ', commit ' + '${{ env.COMMIT_HASH }}',
+              '🏗️ Building Docker image for PR #' + process.env.PR_NUMBER + ', commit ' + process.env.PR_SHA,
               '',
               '📝 [View Build Logs](' + process.env.WORKFLOW_URL + ')',
               '',
@@ -212,8 +267,8 @@ jobs:
         uses: ./.github/actions/build-docker-image
         with:
           app_name: ${{ env.APP_NAME }}
-          org: ${{ env.CPLN_ORG_STAGING }}
-          commit: ${{ env.COMMIT_HASH }}
+          org: ${{ vars.CPLN_ORG_STAGING }}
+          commit: ${{ env.PR_SHA }}
           PR_NUMBER: ${{ env.PR_NUMBER }}
 
       - name: Update Status - Deploying
@@ -243,7 +298,7 @@ jobs:
         uses: ./.github/actions/deploy-to-control-plane
         with:
           app_name: ${{ env.APP_NAME }}
-          org: ${{ env.CPLN_ORG_STAGING }}
+          org: ${{ vars.CPLN_ORG_STAGING }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           wait_timeout: ${{ vars.WAIT_TIMEOUT || 900 }}
           cpln_token: ${{ secrets.CPLN_TOKEN_STAGING }}
@@ -276,7 +331,7 @@ jobs:
             
             // Define messages based on deployment status
             const successMessage = [
-              '✅ Deployment complete for PR #' + prNumber + ', commit ' + '${{ env.COMMIT_HASH }}',
+              '✅ Deployment complete for PR #' + prNumber + ', commit ' + '${{ env.PR_SHA }}',
               '',
               '🚀 [Review App for PR #' + prNumber + '](' + appUrl + ')',
               consoleLink,
@@ -285,7 +340,7 @@ jobs:
             ].join('\n');
             
             const failureMessage = [
-              '❌ Deployment failed for PR #' + prNumber + ', commit ' + '${{ env.COMMIT_HASH }}',
+              '❌ Deployment failed for PR #' + prNumber + ', commit ' + '${{ env.PR_SHA }}',
               '',
               consoleLink,
               '',
