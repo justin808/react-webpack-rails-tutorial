@@ -85,6 +85,7 @@ GEM
       execjs (~> 2)
     awesome_print (1.9.2)
     base64 (0.2.0)
+    bcrypt (3.1.20)
     benchmark (0.4.0)
     bigdecimal (3.1.8)
     bindex (0.8.1)
@@ -134,6 +135,12 @@ GEM
       irb (~> 1.10)
       reline (>= 0.3.8)
     debug_inspector (1.2.0)
+    devise (4.9.4)
+      bcrypt (~> 3.0)
+      orm_adapter (~> 0.1)
+      railties (>= 4.1.0)
+      responders
+      warden (~> 1.2.3)
     diff-lcs (1.5.1)
     docile (1.4.0)
     drb (2.2.1)
@@ -165,6 +172,8 @@ GEM
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
     json (2.7.2)
+    jwt (2.10.1)
+      base64
     language_server-protocol (3.17.0.3)
     launchy (3.0.1)
       addressable (~> 2.8)
@@ -204,6 +213,7 @@ GEM
       racc (~> 1.4)
     nokogiri (1.16.6-x86_64-linux)
       racc (~> 1.4)
+    orm_adapter (0.5.0)
     package_json (0.1.0)
     parallel (1.26.3)
     parser (3.3.3.0)
@@ -304,6 +314,9 @@ GEM
     reline (0.5.9)
       io-console (~> 0.5)
     require_all (3.0.0)
+    responders (3.1.1)
+      actionpack (>= 5.2)
+      railties (>= 5.2)
     rexml (3.3.1)
       strscan
     rspec-core (3.13.0)
@@ -425,6 +438,8 @@ GEM
     unicode-emoji (4.0.4)
     uri (1.0.2)
     useragent (0.16.10)
+    warden (1.2.9)
+      rack (>= 2.0.9)
     web-console (4.2.1)
       actionview (>= 6.0.0)
       activemodel (>= 6.0.0)
@@ -454,10 +469,12 @@ DEPENDENCIES
   coveralls_reborn (~> 0.25.0)
   database_cleaner
   debug (>= 1.0.0)
+  devise
   factory_bot_rails
   foreman
   generator_spec
   jbuilder
+  jwt
   launchy
   listen
   net-pop!
