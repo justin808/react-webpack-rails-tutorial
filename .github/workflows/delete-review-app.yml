@@ -44,6 +44,14 @@ jobs:
 
       - name: Validate Required Secrets and Variables
         uses: ./.github/actions/validate-required-vars
+        with:
+          CPLN_TOKEN_STAGING: ${{ secrets.CPLN_TOKEN_STAGING }}
+          CPLN_TOKEN_PRODUCTION: ${{ secrets.CPLN_TOKEN_PRODUCTION }}
+          CPLN_ORG_STAGING: ${{ vars.CPLN_ORG_STAGING }}
+          CPLN_ORG_PRODUCTION: ${{ vars.CPLN_ORG_PRODUCTION }}
+          REVIEW_APP_PREFIX: ${{ vars.REVIEW_APP_PREFIX }}
+          PRODUCTION_APP_NAME: ${{ vars.PRODUCTION_APP_NAME }}
+          STAGING_APP_NAME: ${{ vars.STAGING_APP_NAME }}
 
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
@@ -108,7 +116,6 @@ jobs:
               issue_number: process.env.PR_NUMBER,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '🗑️ Starting app deletion...'
               body: [
                 message,
                 '',
@@ -125,10 +132,6 @@ jobs:
           app_name: ${{ env.APP_NAME }}
           org: ${{ env.CPLN_ORG }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          APP_NAME: ${{ env.APP_NAME }}
-          CPLN_ORG: ${{ secrets.CPLN_ORG }}
-          CPLN_TOKEN: ${{ secrets.CPLN_TOKEN }}
 
       - name: Update Delete Status
         if: always()
@@ -163,3 +166,15 @@ jobs:
               comment_id: ${{ fromJSON(steps.create-delete-comment.outputs.result).commentId }},
               body: success ? successMessage : failureMessage
             });
+
+      - name: Debug Environment
+        run: |
+          echo "Organization: ${{ env.CPLN_ORG }}"
+          echo "App Name: ${{ env.APP_NAME }}"
+          echo "PR Number: ${{ env.PR_NUMBER }}"
+          # Don't echo the actual token, but verify it exists
+          if [ -n "${{ env.CPLN_TOKEN }}" ]; then
+            echo "CPLN_TOKEN is set"
+          else
+            echo "CPLN_TOKEN is empty"
+          fi

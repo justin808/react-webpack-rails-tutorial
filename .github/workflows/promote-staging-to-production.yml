@@ -9,36 +9,44 @@ on:
         type: string
 
 jobs:
+  debug:
+    uses: ./.github/workflows/debug-workflow.yml
+    with:
+      debug_enabled: false
+
   promote-to-production:
     runs-on: ubuntu-latest
     if: github.event.inputs.confirm_promotion == 'promote'
-    
+
     env:
-      APP_NAME: react-webpack-rails-tutorial
-      CPLN_ORG: ${{ secrets.CPLN_ORG }}
-      UPSTREAM_TOKEN: ${{ secrets.STAGING_TOKEN }}
-    
+      APP_NAME: ${{ vars.PRODUCTION_APP_NAME }}
+      CPLN_ORG: ${{ vars.CPLN_ORG_PRODUCTION }}
+      CPLN_TOKEN: ${{ secrets.CPLN_TOKEN_PRODUCTION }}
+      UPSTREAM_TOKEN: ${{ secrets.CPLN_TOKEN_STAGING }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
-        env:
-          CPLN_TOKEN: ${{ secrets.CPLN_TOKEN }}
-      
+        with:
+          token: ${{ secrets.CPLN_TOKEN_PRODUCTION }}
+          org: ${{ vars.CPLN_ORG_PRODUCTION }}
+
       - name: Promote Staging to Production
         id: promote
         run: |
-          echo "🚀 Starting promotion from staging to production..."
-          
-          if ! cpflow promote-app-from-upstream -a "${APP_NAME}" -t "${UPSTREAM_TOKEN}" --org "${CPLN_ORG}"; then
+          echo "🚀 Starting promotion from staging to production for app ${APP_NAME}"
+         
+          echo "upstream_token is ${UPSTREAM_TOKEN}"
+          if ! cpflow promote-app-from-upstream -a "${APP_NAME}" -t "${UPSTREAM_TOKEN}" --org "${CPLN_ORG}"  --verbose --trace   ; then
             echo "❌ Failed to promote staging to production"
             exit 1
           fi
           
           echo "✅ Successfully promoted staging to production"
-      
+
       - name: Create GitHub Release
         if: success()
         env:

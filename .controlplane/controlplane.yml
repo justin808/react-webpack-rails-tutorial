@@ -39,23 +39,24 @@ aliases:
 
 apps:
   react-webpack-rails-tutorial-production:
-    # Simulate Production Version
+    # Simulate Production Version. Create with this command:
+    # cpflow apply-template app postgres redis daily-task rails -a react-webpack-rails-tutorial-production -o shakacode-open-source-examples-production
     <<: *common
     # Don't allow overriding the org and app by ENV vars b/c production is sensitive!
     allow_org_override_by_env: false
     allow_app_override_by_env: false
 
-    # Use a different organization for production.
-    cpln_org: shakacode-open-source-examples
+    # Use a different organization only for  production.
+    cpln_org: shakacode-open-source-examples-production
 
     upstream: react-webpack-rails-tutorial-staging
 
   react-webpack-rails-tutorial-staging:
     <<: *common
-  # QA Apps are like Heroku review apps, but the use `prefix` so you can run a commmand like
-  # this to create a QA app for the tutorial app.
-  # `cpflow setup gvc postgres redis rails -a qa-react-webpack-rails-tutorial-pr-1234`
   qa-react-webpack-rails-tutorial:
+    # Review Apps are like Heroku review apps, but the use `prefix` so you can run a command like
+    # this to create a QA app for the tutorial app.
+    # `cpflow setup-app -a qa-react-webpack-rails-tutorial-pr-1234`
     <<: *common
     # Order matters!
     setup_app_templates:

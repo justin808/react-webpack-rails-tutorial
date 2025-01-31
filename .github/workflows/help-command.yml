@@ -18,7 +18,7 @@ jobs:
   help:
     if: ${{ (github.event.issue.pull_request && github.event.comment.body == '/help') || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Show Available Commands
         uses: actions/github-script@v7
@@ -26,8 +26,8 @@ jobs:
           script: |
             const sections = {
               commands: {
-                deploy: {
-                  title: '## `/deploy`',
+                "deploy-review-app": {
+                  title: '## `/deploy-review-app`',
                   purpose: '**Purpose:** Deploy a review app for your pull request',
                   details: [
                     '**What it does:**',
@@ -42,8 +42,8 @@ jobs:
                     '  - Example: `/deploy timeout=1800`'
                   ]
                 },
-                destroy: {
-                  title: '## `/destroy`',
+                "delete-review-app: {
+                  title: '## `/delete-review-app`',
                   purpose: '**Purpose:** Remove the review app for your pull request',
                   details: [
                     '**What it does:**',
@@ -96,17 +96,18 @@ jobs:
                 details: [
                   'Review apps are automatically destroyed when:',
                   '1. The pull request is closed',
-                  '2. The `/destroy` command is used',
+                  '2. The `/delete-review-app` command is used',
                   '3. A new deployment is requested (old one is cleaned up first)'
                 ]
               },
               help: {
                 title: '## Need Help?',
                 details: [
-                  'For additional assistance:',
-                  '1. Check the [Control Plane documentation](https://docs.controlplane.com/)',
+                  'For additional assistance, ',
+                  '1. Check the [Control Plane Flow documentation](https://www.shakacode.com/control-plane-flow/docs/)',
                   '2. Contact the infrastructure team',
-                  '3. Open an issue in this repository'
+                  '3. [Open an issue in this repository](https://github.com/shakacode/control-plane-flow/issues/new)',
+                  '4. [Contact ShakaCode support](mailto:justin@shakacode.com)'
                 ]
               }
             };
@@ -148,4 +149,3 @@ jobs:
               issue_number: prNumber,
               body: helpText
             });
-            

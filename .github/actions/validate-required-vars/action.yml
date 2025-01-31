@@ -1,6 +1,29 @@
 name: 'Validate Required Variables'
 description: 'Validates that all required secrets and variables for Control Plane operations'
 
+inputs:
+  CPLN_TOKEN_STAGING:
+    required: true
+    description: 'Control Plane Staging Token'
+  CPLN_TOKEN_PRODUCTION:
+    required: true
+    description: 'Control Plane Production Token'
+  CPLN_ORG_STAGING:
+    required: true
+    description: 'Control Plane Staging Organization'
+  CPLN_ORG_PRODUCTION:
+    required: true
+    description: 'Control Plane Production Organization'
+  REVIEW_APP_PREFIX:
+    required: true
+    description: 'Review App Prefix'
+  PRODUCTION_APP_NAME:
+    required: true
+    description: 'Production App Name'
+  STAGING_APP_NAME:
+    required: true
+    description: 'Staging App Name'
+
 runs:
   using: 'composite'
   steps:
@@ -10,19 +33,37 @@ runs:
         missing=()
         
         # Check required secrets
-        if [ -z "$CPLN_TOKEN_STAGING" ]; then
+        if [ -z "${{ inputs.CPLN_TOKEN_STAGING }}" ]; then
           missing+=("Secret: CPLN_TOKEN_STAGING")
+        fi
+
+        if [ -z "${{ inputs.CPLN_TOKEN_PRODUCTION }}" ]; then
+          missing+=("Secret: CPLN_TOKEN_PRODUCTION")
         fi
         
         # Check required variables
-        if [ -z "$CPLN_ORG_STAGING" ]; then
+        if [ -z "${{ inputs.CPLN_ORG_STAGING }}" ]; then
           missing+=("Variable: CPLN_ORG_STAGING")
         fi
-        if [ -z "$REVIEW_APP_PREFIX" ]; then
+
+        if [ -z "${{ inputs.CPLN_ORG_PRODUCTION }}" ]; then
+          missing+=("Variable: CPLN_ORG_PRODUCTION")
+        fi
+
+        if [ -z "${{ inputs.REVIEW_APP_PREFIX }}" ]; then
           missing+=("Variable: REVIEW_APP_PREFIX")
+        fi
+
+        if [ -z "${{ inputs.PRODUCTION_APP_NAME }}" ]; then
+          missing+=("Variable: PRODUCTION_APP_NAME")
+        fi
+
+        if [ -z "${{ inputs.STAGING_APP_NAME }}" ]; then
+          missing+=("Variable: STAGING_APP_NAME")
         fi
         
         if [ ${#missing[@]} -ne 0 ]; then
-          echo "Required secrets/variables are not set: ${missing[*]}"
+          echo "Missing required secrets/variables:"
+          printf '%s\n' "${missing[@]}"
           exit 1
         fi 
