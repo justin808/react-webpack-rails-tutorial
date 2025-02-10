@@ -227,3 +227,5 @@ We're looking for great developers that want to work with Rails + React (and rea
 Thank you for considering using [React on Rails](https://github.com/shakacode/react_on_rails).
 
 Aloha and best wishes from the ShakaCode team!
+
+[Test referer](https://justin-app-qyf21fmx4q3tm.cpln.app)
